@@ -146,81 +146,81 @@ def test_reads_exist_fail():
         with pytest.raises(SystemExit):
             amr_obj._check_reads(read=read)
 
-def test_check_input_batch_success():
-    """
-    assert true when batch is the running type
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        amr_obj = AmrSetup()
-        amr_obj.logger = logging.getLogger(__name__)
-        amr_obj.datafile = test_folder / "isolates.tab"
-        amr_obj.one = 16
-        amr_obj.five = 24
-        amr_obj.fifteen = 32
-        amr_obj.total_cores = 64
-        val = 3
+# def test_check_input_batch_success():
+#     """
+#     assert true when batch is the running type
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         amr_obj = AmrSetup()
+#         amr_obj.logger = logging.getLogger(__name__)
+#         amr_obj.datafile = test_folder / "isolates.tab"
+#         amr_obj.one = 16
+#         amr_obj.five = 24
+#         amr_obj.fifteen = 32
+#         amr_obj.total_cores = 64
+#         val = 3
 
-        assert amr_obj._input_files(jobs = val) == ('batch',val)
+#         assert amr_obj._input_files(jobs = val) == ('batch',val)
 
-def test_check_input_batch_fail():
-    """
-    assert true when batch is the running type
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        amr_obj = AmrSetup()
-        amr_obj.logger = logging.getLogger(__name__)
-        amr_obj.datafile = test_folder / "isolates.txt"
-        amr_obj.one = 16
-        amr_obj.five = 24
-        amr_obj.fifteen = 32
-        amr_obj.total_cores = 64
-        val = 3
+# def test_check_input_batch_fail():
+#     """
+#     assert true when batch is the running type
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         amr_obj = AmrSetup()
+#         amr_obj.logger = logging.getLogger(__name__)
+#         amr_obj.datafile = test_folder / "isolates.txt"
+#         amr_obj.one = 16
+#         amr_obj.five = 24
+#         amr_obj.fifteen = 32
+#         amr_obj.total_cores = 64
+#         val = 3
 
-        with pytest.raises(SystemExit):
-            amr_obj._input_files(jobs=val)
+#         with pytest.raises(SystemExit):
+#             amr_obj._input_files(jobs=val)
         
-def test_check_input_single_success():
-    """
-    assert true when batch is the running type
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        amr_obj = AmrSetup()
-        amr_obj.logger = logging.getLogger(__name__)
-        amr_obj.read1 = test_folder / "dummy_R1.fq.gz"
-        amr_obj.read2 = test_folder / "dummy_R2.fq.gz"
-        amr_obj.datafile = ""
-        amr_obj.prefix = 'some_prefix'
-        amr_obj.one = 16
-        amr_obj.five = 24
-        amr_obj.fifteen = 32
-        amr_obj.total_cores = 64
-        val = 3
+# def test_check_input_single_success():
+#     """
+#     assert true when batch is the running type
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         amr_obj = AmrSetup()
+#         amr_obj.logger = logging.getLogger(__name__)
+#         amr_obj.read1 = test_folder / "dummy_R1.fq.gz"
+#         amr_obj.read2 = test_folder / "dummy_R2.fq.gz"
+#         amr_obj.datafile = ""
+#         amr_obj.prefix = 'some_prefix'
+#         amr_obj.one = 16
+#         amr_obj.five = 24
+#         amr_obj.fifteen = 32
+#         amr_obj.total_cores = 64
+#         val = 3
 
-        assert amr_obj._input_files(jobs = val) == ('single',val)
+#         assert amr_obj._input_files(jobs = val) == ('single',val)
 
-def test_check_input_single_fail():
-    """
-    assert true when batch is the running type
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        amr_obj = AmrSetup()
-        amr_obj.logger = logging.getLogger(__name__)
-        amr_obj.read1 = test_folder / "dummy_R1.fq.gz"
-        amr_obj.read2 = test_folder / "dummy_R5.fq.gz"
-        amr_obj.datafile = ""
-        amr_obj.prefix = 'some_prefix'
-        amr_obj.one = 16
-        amr_obj.five = 24
-        amr_obj.fifteen = 32
-        amr_obj.total_cores = 64
-        val = 3
+# def test_check_input_single_fail():
+#     """
+#     assert true when batch is the running type
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         amr_obj = AmrSetup()
+#         amr_obj.logger = logging.getLogger(__name__)
+#         amr_obj.read1 = test_folder / "dummy_R1.fq.gz"
+#         amr_obj.read2 = test_folder / "dummy_R5.fq.gz"
+#         amr_obj.datafile = ""
+#         amr_obj.prefix = 'some_prefix'
+#         amr_obj.one = 16
+#         amr_obj.five = 24
+#         amr_obj.fifteen = 32
+#         amr_obj.total_cores = 64
+#         val = 3
 
-        with pytest.raises(SystemExit):
-            amr_obj._input_files(jobs = val)
+#         with pytest.raises(SystemExit):
+#             amr_obj._input_files(jobs = val)
         
 
 # # Test SetupMDU
-DATA = collections.namedtuple('Data', ['run_type', 'datafile', 'prefix','read1','read2', 'jobs', 'db'])
+DATA = collections.namedtuple('Data', ['input_file', 'jobs', 'db', 'keep', 'keep_bam'])
 
 def test_batch_setup_success():
     """
@@ -268,51 +268,51 @@ def test_batch_setup_fail():
         with pytest.raises(SystemExit):
             amr_obj._setup()
 
-def test_single_setup_success():
-    """
-    assert True when non-empty string is given
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        args = DATA("single", f"",'some_prefix', f"{test_folder / 'dummy_R1.fq.gz'}", f"{test_folder / 'dummy_R2.fq.gz'}",  3, 'tbdb')
-        # print(args)
-        amr_obj = AmrSetup()
-        amr_obj.logger = logging.getLogger(__name__)
-        amr_obj.datafile = f""
-        amr_obj.read1 = f"{test_folder / 'dummy_R1.fq.gz'}"
-        amr_obj.read2 = f"{test_folder / 'dummy_R2.fq.gz'}"
-        amr_obj.one = 16
-        amr_obj.five = 24
-        amr_obj.fifteen = 32
-        amr_obj.total_cores = 64
-        amr_obj.jobs = 3
-        amr_obj.prefix = "some_prefix"
-        amr_obj.database = "tbdb"
+# def test_single_setup_success():
+#     """
+#     assert True when non-empty string is given
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         args = DATA("single", f"",'some_prefix', f"{test_folder / 'dummy_R1.fq.gz'}", f"{test_folder / 'dummy_R2.fq.gz'}",  3, 'tbdb')
+#         # print(args)
+#         amr_obj = AmrSetup()
+#         amr_obj.logger = logging.getLogger(__name__)
+#         amr_obj.datafile = f""
+#         amr_obj.read1 = f"{test_folder / 'dummy_R1.fq.gz'}"
+#         amr_obj.read2 = f"{test_folder / 'dummy_R2.fq.gz'}"
+#         amr_obj.one = 16
+#         amr_obj.five = 24
+#         amr_obj.fifteen = 32
+#         amr_obj.total_cores = 64
+#         amr_obj.jobs = 3
+#         amr_obj.prefix = "some_prefix"
+#         amr_obj.database = "tbdb"
 
-        assert amr_obj._setup() == args
+#         assert amr_obj._setup() == args
 
 
-def test_single_setup_fail():
-    """
-    assert True when non-empty string is given
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        args = DATA("single", f"",'some_prefix', f"{test_folder / 'dummy_R1.fq.gz'}", f"{test_folder / 'dummy_R2.fq.gz'}",  3, 'tbdb')
-        # print(args)
-        amr_obj = AmrSetup()
-        amr_obj.logger = logging.getLogger(__name__)
-        amr_obj.datafile = f""
-        amr_obj.read1 = f"{test_folder / 'dummy_R1.fq.gz'}"
-        amr_obj.read2 = f"{test_folder / 'dummy_R5.fq.gz'}"
-        amr_obj.one = 16
-        amr_obj.five = 24
-        amr_obj.fifteen = 32
-        amr_obj.total_cores = 64
-        amr_obj.jobs = 3
-        amr_obj.prefix = "some_prefix"
-        amr_obj.database = "tbdb"
+# def test_single_setup_fail():
+#     """
+#     assert True when non-empty string is given
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         args = DATA("single", f"",'some_prefix', f"{test_folder / 'dummy_R1.fq.gz'}", f"{test_folder / 'dummy_R2.fq.gz'}",  3, 'tbdb')
+#         # print(args)
+#         amr_obj = AmrSetup()
+#         amr_obj.logger = logging.getLogger(__name__)
+#         amr_obj.datafile = f""
+#         amr_obj.read1 = f"{test_folder / 'dummy_R1.fq.gz'}"
+#         amr_obj.read2 = f"{test_folder / 'dummy_R5.fq.gz'}"
+#         amr_obj.one = 16
+#         amr_obj.five = 24
+#         amr_obj.fifteen = 32
+#         amr_obj.total_cores = 64
+#         amr_obj.jobs = 3
+#         amr_obj.prefix = "some_prefix"
+#         amr_obj.database = "tbdb"
 
-        with pytest.raises(SystemExit):
-            amr_obj._setup()
+#         with pytest.raises(SystemExit):
+#             amr_obj._setup()
 
 def test_generate_cmd_batch_success():
     """
@@ -327,15 +327,15 @@ def test_generate_cmd_batch_success():
         assert amr_obj._batch_cmd(input_data= args) == f"parallel --colsep '\t' -n {args.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} --db {args.db} --prefix {{1}} --dir {{1}} --csv --call_whole_genome --no_trim --threads {args.jobs} > {{1}}/tbprofiler.log 2>&1' :::: {args.datafile}"
 
 
-def test_generate_cmd_single_success():
-    """
-    assert True when non-empty string is given
-    """
-    with patch.object(AmrSetup, "__init__", lambda x: None):
-        args = DATA("single", f"",'some_prefix', f"{test_folder / 'dummy_R1.fq.gz'}", f"{test_folder / 'dummy_R2.fq.gz'}",  3, 'tbdb')
-        # print(args)
-        amr_obj = RunProfiler(args)
-        amr_obj.logger = logging.getLogger(__name__)
+# def test_generate_cmd_single_success():
+#     """
+#     assert True when non-empty string is given
+#     """
+#     with patch.object(AmrSetup, "__init__", lambda x: None):
+#         args = DATA("single", f"",'some_prefix', f"{test_folder / 'dummy_R1.fq.gz'}", f"{test_folder / 'dummy_R2.fq.gz'}",  3, 'tbdb')
+#         # print(args)
+#         amr_obj = RunProfiler(args)
+#         amr_obj.logger = logging.getLogger(__name__)
 
-        assert amr_obj._single_cmd(input_data= args) == f"tb-profiler profile --read1 {args.read1} --read2 {args.read2} --db {args.db} --prefix {args.prefix} --dir {args.prefix} --csv --call_whole_genome --no_trim --threads {args.jobs} > {args.prefix}/tbprofiler.log 2>&1"
+#         assert amr_obj._single_cmd(input_data= args) == f"tb-profiler profile --read1 {args.read1} --read2 {args.read2} --db {args.db} --prefix {args.prefix} --dir {args.prefix} --csv --call_whole_genome --no_trim --threads {args.jobs} > {args.prefix}/tbprofiler.log 2>&1"
 

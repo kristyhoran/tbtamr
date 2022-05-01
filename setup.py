@@ -28,10 +28,10 @@ setup(
     author_email="kristyhoran15@gmail.com",
     maintainer="Kristy Horan",
     maintainer_email="kristyhoran15@gmail.com",
-    python_requires=">=3.9, <4",
+    python_requires=">=3.8, <4",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     zip_safe=False,
-    install_requires=["pandas","xlsxwriter"],
+    install_requires=["pandas","xlsxwriter","psutil"],
     test_suite="nose.collector",
     tests_require=["nose", "pytest"],
     entry_points={
