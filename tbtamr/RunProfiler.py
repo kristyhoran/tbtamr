@@ -34,10 +34,10 @@ class RunProfiler(Tbtamr):
         for iso in isolates:
             wldcrd = f"{iso}/results/{iso}.results.json" if step == 'profile' else f"{iso}/tb-profiler_report.json"
             p = sorted(pathlib.Path.cwd().glob(wldcrd))
-            if p.exists():
-                isolates[iso][step] = f"{p}"
+            if p[0].exists():
+                isolates[iso][step] = f"{p[0]}"
             else:
-                logger.critical(f"There seems to be a serious problem - file {p} was not created. Please check logs and try again.")
+                logger.critical(f"There seems to be a serious problem - file {p[0]} was not created. Please check logs and try again.")
                 raise SystemExit
         logger.info(f"All files for step : {step} have been created.")
         return isolates
@@ -49,9 +49,10 @@ class RunProfiler(Tbtamr):
 
             lines = i.read().strip().split('\n')
             for line in lines:
-                iso = line.split('\t')
+                iso = line.split('\t')[0]
                 if iso not in isolates:
                     isolates[iso] = {}
+                
         return isolates
         
     def _remove(self, keep_bam = False, keep = False):
@@ -75,7 +76,7 @@ class RunProfiler(Tbtamr):
         self._run_cmd(cmd=cmd)
 
     def _batch_cmd(self):
-        cmd = f"parallel --colsep '\\t' -j {self.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} --db {self.database} --prefix {{1}} --dir {{1}} --csv --call_whole_genome --no_trim --threads 4 >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
+        cmd = f"parallel --colsep '\\t' -j {self.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} --db {self.database} --prefix {{1}} --dir {{1}} --no_trim --threads 4 >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
         return cmd
 
     def _batch_collate(self):
@@ -112,17 +113,18 @@ class RunProfiler(Tbtamr):
         # self._check_tbprofiler()
         cmd_profiler = self._batch_cmd()
         
-        if self._run_cmd(cmd = cmd_profiler):
-            isolates = self._check_output(isolates = isolates, step = 'profile')
-            logger.info(f"Profiling was completed successfully, now collating results.")
-            cmd_collate = self._batch_collate()
-            if self._run_cmd(cmd = cmd_collate):
-                isolates = self._check_output(isolates = isolates, step = 'collate')
-            # clean up
-                self._tidy_tbp()
-                self._remove(keep_bam=self.keep_bam, keep = self.keep)
-                return isolates
-        logger.critical(f"Something seems to be wrong with your run of tbTAMR. Please try again.")
+        # if self._run_cmd(cmd = cmd_profiler):
+        isolates = self._check_output(isolates = isolates, step = 'profile')
+            # logger.info(f"Profiling was completed successfully, now collating results.")
+            # cmd_collate = self._batch_collate()
+            # if self._run_cmd(cmd = cmd_collate):
+        isolates = self._check_output(isolates = isolates, step = 'collate')
+        # clean up
+        self._tidy_tbp()
+        self._remove(keep_bam=self.keep_bam, keep = self.keep)
+        return isolates
+        
+        # logger.critical(f"Something seems to be wrong with your run of tbTAMR. Please try again.")
 
 
         

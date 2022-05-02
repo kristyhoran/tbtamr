@@ -50,9 +50,9 @@ class Tbtamr(object):
     
     def _set_threads(self, jobs, samples):
         
-        logger.info(f"Detecting available resources")
+        logger.info(f"You have {samples} samples in your analysis. Will now determine available resources")
         
-        if int(jobs) < samples:
+        if int(jobs) > samples:
             jobs = samples
         # elif job
         avail = self.total_cores - max(self.one,self.five,self.fifteen)
