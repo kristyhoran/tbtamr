@@ -79,21 +79,17 @@ def set_parsers():
     ) 
 
     parser_sub_run.set_defaults(func=run_pipeline)
-    # parser_mdu.set_defaults(func = mdu)
-    args = parser.parse_args()
+    args = parser.parse_args(args=None if sys.argv[1:]  else ['--help'])
     return args
 
-
+# 
 def main():
     """
     run pipeline
     """
 
     args = set_parsers()
-    if vars(args) == {}:
-        parser.print_help(sys.stderr)
-    else:
-        args.func(args)
+    args.func(args)
     
 
 if __name__ == "__main__":
