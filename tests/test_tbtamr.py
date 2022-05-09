@@ -1,4 +1,4 @@
-import pytest,pathlib
+import pytest,pathlib, logging
 from unittest.mock import patch, PropertyMock
 
 from tbtamr.AmrSetup import AmrSetup
