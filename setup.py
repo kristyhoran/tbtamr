@@ -33,7 +33,7 @@ setup(
     zip_safe=False,
     install_requires=["pandas","xlsxwriter","psutil"],
     test_suite="nose.collector",
-    tests_require=["nose", "pytest"],
+    tests_require=["nose", "pytest","psutil"],
     entry_points={
         "console_scripts": [
             "tbtamr=tbtamr.tbtamr:main",

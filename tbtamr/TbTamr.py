@@ -1,4 +1,4 @@
-import pathlib, subprocess, os, subprocess, psutil
+import pathlib, subprocess, os, psutil
 from tbtamr.CustomLog import logger
 
 
