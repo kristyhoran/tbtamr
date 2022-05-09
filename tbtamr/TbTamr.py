@@ -48,26 +48,23 @@ class Tbtamr(object):
             logger.critical(f"There appears to have been a problem with running {cmd}. The following error has been reported : \n {p.stderr}")
             raise SystemExit
     
-    def _set_threads(self, jobs, samples):
+    def _set_threads(self, jobs):
         
-        logger.info(f"You have {samples} samples in your analysis. Will now determine available resources")
+        jobs = int(jobs)/2
         
-        if int(jobs) > samples:
-            jobs = samples
-        # elif job
-        avail = self.total_cores - max(self.one,self.five,self.fifteen)
-        logger.info(f"The available cores is : {avail}")
-        max_tbjob = int(avail  / 8) 
+        max_tbjob  = self.total_cores - max(self.one,self.five,self.fifteen)
+        logger.info(f"The available cores is : {max_tbjob}")
+        
         
         if int(jobs) == 0:
             logger.info(f"Number of TB-profiler jobs to run {max_tbjob}")
-            return max_tbjob
-        elif int(jobs) <  max_tbjob:
+            return int(max_tbjob/2)
+        elif int(jobs) <  max_tbjob/2:
             logger.info(f"Number of TB-profiler jobs to run {jobs}")
-            return jobs
+            return int(jobs)
         else:
             logger.info(f"Number of TB-profiler jobs to run {max_tbjob}")
-            return max_tbjob
+            return int(max_tbjob/2)
             
     def _clean_cmd(self, path):
 

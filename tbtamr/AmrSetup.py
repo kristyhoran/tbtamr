@@ -60,7 +60,7 @@ class AmrSetup(Tbtamr):
         logger.info(f"Now writing input file.")
         pth.write_text('\n'.join(input_lines))
 
-        return pth
+        return f"{pth}"
 
     def _input_files(self, jobs):
         """
@@ -96,14 +96,14 @@ class AmrSetup(Tbtamr):
             logger.critical(f"Something has gone wrong with your inputs. Please try again.")
             raise SystemExit
 
-        input_file = self._write_inputfile(input_lines = input_lines)
-        jobs = self._set_threads(jobs=jobs, samples = len(input_lines))
-        return input_file,jobs
+        self.input_file = self._write_inputfile(input_lines = input_lines)
+        jobs = self._set_threads(jobs=jobs)
+        return jobs
    
 
     def _setup(self):
         # check that inputs are correct and files are present
-        input_file, jobs = self._input_files(jobs = self.jobs)
+        jobs = self._input_files(jobs = self.jobs)
         # check that prefix is present (if needed)
         
         if self.keep and not self.keep_bam:
@@ -116,7 +116,7 @@ class AmrSetup(Tbtamr):
             logger.info(f"You have not decided to keep accesory files. All accessory and intermediate files will be removed following successful completion of tbTAMR.")
         
         Data = collections.namedtuple('Data', ['input_file', 'jobs', 'db', 'keep','keep_bam'])
-        input_data = Data(input_file, jobs, self.database, self.keep, self.keep_bam)
+        input_data = Data(self.input_file, jobs, self.database, self.keep, self.keep_bam)
         
         return input_data
     

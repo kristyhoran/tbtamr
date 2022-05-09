@@ -76,7 +76,7 @@ class RunProfiler(Tbtamr):
         self._run_cmd(cmd=cmd)
 
     def _batch_cmd(self):
-        cmd = f"parallel --colsep '\\t' -j {self.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} --db {self.database} --prefix {{1}} --dir {{1}} --no_trim --threads 4 >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
+        cmd = f"parallel --colsep '\\t' -j {self.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} --db {self.database} --prefix {{1}} --dir {{1}} --no_trim --call_whole_genome --threads 1 >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
         return cmd
 
     def _batch_collate(self):
@@ -113,18 +113,18 @@ class RunProfiler(Tbtamr):
         # self._check_tbprofiler()
         cmd_profiler = self._batch_cmd()
         
-        # if self._run_cmd(cmd = cmd_profiler):
-        isolates = self._check_output(isolates = isolates, step = 'profile')
-            # logger.info(f"Profiling was completed successfully, now collating results.")
-            # cmd_collate = self._batch_collate()
-            # if self._run_cmd(cmd = cmd_collate):
-        isolates = self._check_output(isolates = isolates, step = 'collate')
+        if self._run_cmd(cmd = cmd_profiler):
+            isolates = self._check_output(isolates = isolates, step = 'profile')
+            logger.info(f"Profiling was completed successfully, now collating results.")
+            cmd_collate = self._batch_collate()
+            if self._run_cmd(cmd = cmd_collate):
+                isolates = self._check_output(isolates = isolates, step = 'collate')
         # clean up
-        self._tidy_tbp()
-        self._remove(keep_bam=self.keep_bam, keep = self.keep)
-        return isolates
+                self._tidy_tbp()
+                self._remove(keep_bam=self.keep_bam, keep = self.keep)
+                return isolates
         
-        # logger.critical(f"Something seems to be wrong with your run of tbTAMR. Please try again.")
+        logger.critical(f"Something seems to be wrong with your run of tbTAMR. Please try again.")
 
 
         
