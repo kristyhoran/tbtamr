@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-import functools
 import json
-import pathlib, pandas, math, sys,  re, logging, numpy,csv
-import warnings
+import pandas
 pandas.options.mode.chained_assignment = None
+
 # from pandas.core.algorithms import isin
 from tbtamr.CustomLog import logger
 
