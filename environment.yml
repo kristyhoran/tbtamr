@@ -152,7 +152,6 @@ dependencies:
     - numpy==1.22.2
     - openpyxl==3.0.9
     - pandas==1.4.2
-    - pathogen-profiler==2.0.3
     - psutil==5.9.0
     - pyfaidx==0.6.4
     - python-dateutil==2.8.2
@@ -160,6 +159,5 @@ dependencies:
     - requests==2.27.1
     - simplejson==3.17.6
     - six==1.16.0
-    - tbprofiler==4.2.0
     - urllib3==1.26.8
     - xlsxwriter==3.0.3
