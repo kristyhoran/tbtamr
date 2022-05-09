@@ -4,7 +4,7 @@ from unittest.mock import patch, PropertyMock
 from tbtamr.AmrSetup import AmrSetup
 from tbtamr.RunProfiler import RunProfiler
 
-test_folder = pathlib.Path(__file__).parent
+test_folder = pathlib.Path(__file__).parent.parent
 
 def test_file_present():
     """
