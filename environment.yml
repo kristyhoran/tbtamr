@@ -163,4 +163,3 @@ dependencies:
     - tbprofiler==4.2.0
     - urllib3==1.26.8
     - xlsxwriter==3.0.3
-prefix: /home/khhor/conda/envs/tb-profiler
