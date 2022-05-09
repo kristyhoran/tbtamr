@@ -77,11 +77,15 @@ class AmrSetup(Tbtamr):
                     data = c.read().strip().split('\n')
                     for line in data:
                         row = line.split('\t')
-                        if self._check_reads(row[1]) and self._check_reads(row[2]):
-                            logger.info(f"Reads for {row[0]} have been found")
-                            logger.info(f"Will no setup sample directory for {row[0]}.")
-                            input_line = self._link_dirs(r1 = row[1], r2 = row[2], p =row[0] )
-                            input_lines.append(input_line)
+                        iso = self._check_output_file(seq_id=row[0], step = 'initial')
+                        if iso == False:
+                            if self._check_reads(row[1]) and self._check_reads(row[2]):
+                                logger.info(f"Reads for {row[0]} have been found")
+                                logger.info(f"Will now setup sample directory for {row[0]}.")
+                                input_line = self._link_dirs(r1 = row[1], r2 = row[2], p =row[0] )
+                                input_lines.append(input_line)
+                        else:
+                            logger.info(f"It seems that results already exist for {iso}.")
             except Exception as e:
                 logger.critical(f"Something has gone wrong with your input file. Please try again {e}.")
                 raise SystemExit
@@ -102,6 +106,7 @@ class AmrSetup(Tbtamr):
    
 
     def _setup(self):
+        
         # check that inputs are correct and files are present
         jobs = self._input_files(jobs = self.jobs)
         # check that prefix is present (if needed)

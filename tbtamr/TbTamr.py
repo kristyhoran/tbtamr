@@ -48,6 +48,28 @@ class Tbtamr(object):
             logger.critical(f"There appears to have been a problem with running {cmd}. The following error has been reported : \n {p.stderr}")
             raise SystemExit
     
+    def _check_output_file(self, seq_id, step):
+
+        wldcrd = f"{seq_id}/results/{seq_id}.results.json" if step == 'profile' else f"{seq_id}/tb-profiler_report.json"
+        # print(wldcrd)
+        p = sorted(pathlib.Path.cwd().glob(wldcrd))
+        # print(p)
+        if p != []:
+            return f"{p[0]}"
+        else:
+            return False
+
+    def _check_output(self, isolates, step = 'profile'):
+        for iso in isolates:
+            present = self._check_output_file(seq_id= iso, step = step)
+            if present:
+                isolates[iso][step] = self._check_output_file(seq_id= iso, step = step)
+            else:
+                logger.critical(f"There seems to be a serious problem - files {iso} were not created. Please check logs and try again.")
+                raise SystemExit
+        logger.info(f"All files for step : {step} have been created.")
+        return isolates
+
     def _set_threads(self, jobs):
         
         jobs = int(jobs)/2

@@ -29,18 +29,7 @@ class RunProfiler(Tbtamr):
     #     cmd = f"tb-profiler collate -d {self.prefix}/results/ --db {self.database} -p {self.prefix}/tb-profiler_report --full --all_variants --mark_missing"
     #     return cmd
 
-    def _check_output(self, isolates, step = 'profile'):
-
-        for iso in isolates:
-            wldcrd = f"{iso}/results/{iso}.results.json" if step == 'profile' else f"{iso}/tb-profiler_report.json"
-            p = sorted(pathlib.Path.cwd().glob(wldcrd))
-            if p[0].exists():
-                isolates[iso][step] = f"{p[0]}"
-            else:
-                logger.critical(f"There seems to be a serious problem - file {p[0]} was not created. Please check logs and try again.")
-                raise SystemExit
-        logger.info(f"All files for step : {step} have been created.")
-        return isolates
+    
 
     def _get_isolates(self):
 
@@ -50,11 +39,11 @@ class RunProfiler(Tbtamr):
             lines = i.read().strip().split('\n')
             for line in lines:
                 iso = line.split('\t')[0]
-                if iso not in isolates:
+                if iso not in isolates and iso != '':
                     isolates[iso] = {}
                 
         return isolates
-        
+    
     def _remove(self, keep_bam = False, keep = False):
 
         if not keep:
@@ -103,13 +92,17 @@ class RunProfiler(Tbtamr):
         """
         
         if self._check_tbprofiler():
-            # print(self.read1)
-            logger.info(f"All check complete now running TB-profiler")
+            isolates = self._get_isolates()
+            if isolates != {}:
+                logger.info(f"All check complete now running TB-profiler")
+            else:
+                logger.warning(f"It seems that you have already run tbtamr on these sequences. Now exiting")
+                raise SystemExit
         else:
             logger.critical(f"TB-profiler does not seem to be installed correctly. Please try again.")
             raise SystemExit
         # get list isolates
-        isolates = self._get_isolates()
+        
         # self._check_tbprofiler()
         cmd_profiler = self._batch_cmd()
         
