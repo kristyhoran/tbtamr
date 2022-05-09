@@ -1,4 +1,4 @@
-import sys, pathlib, pandas, pytest, numpy, logging, collections
+import sys, pathlib, pytest, logging, collections
 
 from unittest.mock import patch, PropertyMock
 
