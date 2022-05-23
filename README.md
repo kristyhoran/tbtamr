@@ -14,7 +14,7 @@ In order to install `tbTAMR` conda is strongly recommended - installation instru
 ```
 git clone git@github.com:kristyhoran/tbtamr.git
 cd tbtamr
-create -f environment.yml
+conda env create -f environment.yml
 conda activate tbtamr
 pip3 install git+https://github.com/MDU-PHL/TBProfiler
 pip3 install git+https://github.com/MDU-PHL/pathogen-profiler

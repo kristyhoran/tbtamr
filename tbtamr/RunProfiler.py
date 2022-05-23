@@ -37,7 +37,7 @@ class RunProfiler(Tbtamr):
 
         isolates = {}
         if isinstance(self.input_data, dict):
-            isolates[self.input_data['Seq_ID']]
+            isolates[self.input_data['Seq_ID']] = {}
         else:
             try:
                 with open(self.input_data,'r') as i:
@@ -72,7 +72,7 @@ class RunProfiler(Tbtamr):
         self._run_cmd(cmd=cmd)
 
     def _single_cmd(self, input_data):
-        cmd = f"'tb-profiler profile --read1 {input_data['R1']} --read2 {input_data['R2']} {self.database} --prefix {input_data['Seq_ID']} --dir {input_data['Seq_ID']} --no_trim --call_whole_genome --threads {self.jobs} >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
+        cmd = f"tb-profiler profile --read1 {input_data['R1']} --read2 {input_data['R2']} {self.database} --prefix {input_data['Seq_ID']} --dir {input_data['Seq_ID']} --no_trim --call_whole_genome --threads {self.jobs} >> {input_data['Seq_ID']}/tbprofiler.log 2>&1"
         return cmd
 
     def _batch_cmd(self, input_data):
@@ -107,6 +107,7 @@ class RunProfiler(Tbtamr):
         """
         
         if self._check_tbprofiler():
+            
             isolates = self._get_isolates()
             if isolates != {}:
                 logger.info(f"All check complete now running TB-profiler")
@@ -119,12 +120,11 @@ class RunProfiler(Tbtamr):
         # get list isolates
         
         # self._check_tbprofiler()
-        cmd_profiler = self._single_cmd(input_data= self.input_data) if isinstance(self.input_data, dict) else self._batch_cmd(input_data= self.input_data)
-        
+        cmd_profiler = self._single_cmd(input_data= self.input_data) if len(isolates) == 1 else self._batch_cmd(input_data= self.input_data)
         if self._run_cmd(cmd = cmd_profiler):
             isolates = self._check_output(isolates = isolates, step = 'profile')
             logger.info(f"Profiling was completed successfully, now collating results.")
-            cmd_collate = self._single_collate(input_data= self.input_data) if isinstance(self.input_data, dict) else self._batch_collate(input_data=self.input_data)
+            cmd_collate = self._single_collate(input_data= self.input_data) if len(isolates) == 1 else self._batch_collate(input_data=self.input_data)
             if self._run_cmd(cmd = cmd_collate):
                 isolates = self._check_output(isolates = isolates, step = 'collate')
         # clean up

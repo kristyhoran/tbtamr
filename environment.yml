@@ -108,7 +108,8 @@ dependencies:
   - perl=5.32.1=2_h7f98852_perl5
   - pillow=9.1.0=py39hae2aec6_2
   - pilon=1.24=hdfd78af_0
-  - pip=22.1=pyhd8ed1ab_0
+  - python=3.9.9=h62f1059_0_cpython
+  - pip=22.1
   - pixman=0.40.0=h36c2ea0_0
   - pthread-stubs=0.4=h36c2ea0_1001
   - pycparser=2.21=pyhd8ed1ab_0
@@ -116,7 +117,6 @@ dependencies:
   - pyopenssl=22.0.0=pyhd8ed1ab_0
   - pyphen=0.12.0=pyhd8ed1ab_0
   - pysocks=1.7.1=py39hf3d152e_5
-  - python=3.9.9=h62f1059_0_cpython
   - python_abi=3.9=2_cp39
   - readline=8.1=h46c0cb4_0
   - requests=2.27.1=pyhd8ed1ab_0
@@ -165,4 +165,4 @@ dependencies:
     - python-dateutil==2.8.2
     - pytz==2022.1
     - xlsxwriter==3.0.3
-prefix: ~/.conda/envs/tbtamr
+prefix: ~/conda/envs/tbtamr
