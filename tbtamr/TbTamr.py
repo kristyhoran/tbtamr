@@ -12,6 +12,7 @@ class Tbtamr(object):
         
         self.one,self.five,self.fifteen = psutil.getloadavg()
         self.total_cores = os.cpu_count()
+        self._cwd = pathlib.Path.cwd()
         # self.jobs = args.jobs # number of tbprofilers to run at a time
         # self.read1 = args.read1
         # self.read2 = args.read2
@@ -52,9 +53,10 @@ class Tbtamr(object):
 
         wldcrd = f"{seq_id}/results/{seq_id}.results.json" if step == 'profile' else f"{seq_id}/tb-profiler_report.json"
         # print(wldcrd)
-        p = sorted(pathlib.Path.cwd().glob(wldcrd))
+        p = sorted(self._cwd.glob(wldcrd))
         # print(p)
         if p != []:
+            logger.info(f"{p[0]} has been found")
             return f"{p[0]}"
         else:
             return False

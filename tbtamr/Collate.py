@@ -1,19 +1,69 @@
 #!/usr/bin/env python3
 import json
-import pandas
+from os import path
+import pandas,pathlib
 pandas.options.mode.chained_assignment = None
 
 # from pandas.core.algorithms import isin
 from tbtamr.CustomLog import logger
+from tbtamr.TbTamr import Tbtamr
 
-class Inferrence(object):
+class Parse(Tbtamr):
+
+    def __init__(self,args):
+        super().__init__()
+        self.isolates = self._extract_isolates(args.isolates)
+    
+    def _fail_isolate_dict(self,seq_id, step):
+
+        logger.critical(f"Files for the tb-profiler {step} for sample {seq_id} are missing. Please try again")
+        raise SystemExit
+
+    def _get_isolate_dict(self, isos):
+        # pass
+        
+        isolates = {}
+        for i in isos:
+            logger.info(f"Checking if files for {i} are present.")
+            isolates[i] = {}
+            pr = self._check_output_file(seq_id=i, step='profile')
+            isolates[i]['profile'] = pr if pr else self._fail_isolate_dict(seq_id = i,step = 'profile')
+            cr = self._check_output_file(seq_id=i, step='collate')
+            isolates[i]['collate'] = cr if pr else self._fail_isolate_dict(seq_id = i,step = 'collate')
+        
+        return isolates
+
+    def _extract_isolates(self, _input):
+
+        if self._file_present(name = _input) and pathlib.Path(_input).is_dir():
+            isolates = self._get_isolate_dict(isos = [_input])
+            return isolates
+        
+        elif self._file_present(name = _input) and not pathlib.Path(_input).is_dir():
+            try:
+                with open(_input, 'r') as f:
+                    isos = f.read().strip().split('\n')
+                if isinstance(isos, list) and len(isolates)>1:
+                    isolates = self._get_isolate_dict(isos = isos)
+                    return isolates
+                else:
+                    logger.critical(f"It seems that your input file is not configured properly. Isolates should be listed with a new isolate on each line. Please try again.")
+                    raise SystemExit
+            except Exception as err:
+                logger.critical(f"Was unable to open {_input} and extract isolates. The following error was reported {err}")
+    
+    def extract_inputs(self):
+
+        return self.isolates
+
+class Inferrence(Tbtamr):
 
     """
-    a base class for collation of tbprofiler results.
+    a class for collation of tbprofiler results.
     """
     
     def __init__(self,args):
-
+        super().__init__()
         self.isolates = args
         self.drugs = self._get_drugs()
 
@@ -60,20 +110,31 @@ class Inferrence(object):
 
         return funcs
 
-    def _open_json(self, path):
+    def _open_json(self, path, for_appending = False):
 
         try:
             with open(f"{path}", 'r') as f:
                 results = json.load(f)
                 return results
         except Exception as err:
-            logger.critical(f"There seems to have been an error opening {path}. The following error was reported {err}")
+            if for_appending:
+                return True
+            else:
+                logger.critical(f"There seems to have been an error opening {path}. The following error was reported {err}")
     
     def _save_json(self, _data, _path):
 
+        
+        logger.info(f"Checking {_path}.json already exists.")
+        _existing_data = self._open_json(path = f"{_path}.json")
+        if isinstance(_existing_data, dict):
+            _to_save = _existing_data.update(_data)
+        else:
+            _to_save = _data
+            
         logger.info(f"Saving file: {_path}.json")
         with open(f"{_path}.json", 'w') as f:
-            json.dump(_data,f)
+            json.dump(_to_save,f)
 
     def _save_csv(self, _data, _path):
         
@@ -169,16 +230,19 @@ class Inferrence(object):
     
         gln497_hc = ['embB_p.Gln497Arg','embB_p.Gln497Lys']
         leu370_us = ['embB_p.Leu370Arg']
-    
-        if 'embB_p.Gln497' in res and res not in gln497_hc:
-            
-            return True
-        
-        elif res in leu370_us:
-            
-            return True
-        
-        return False
+        embA = ['embA_c.-16C>T']
+        to_remove = []
+        for r in res:
+            if 'embB_p.Gln497' in r and r not in gln497_hc:
+                to_remove.append(r)
+            elif r in leu370_us:
+                to_remove.append(r)
+            elif r in embA:
+                to_remove.append(r)
+        if len(set(res).difference(to_remove))== 0:
+            return 'No mechanism identified'
+        else:
+            return ';'.join(list(set(res).difference(to_remove)))
 
     def _ethambutol(self,res):
              
@@ -188,29 +252,21 @@ class Inferrence(object):
             return 'No mechanism identified^'
         else:
             inds = [i.strip() for i in res.split(',')]
-            if len(inds) == 1 and self._emb_comp(inds[0]):
-                return 'No mechanism identified'
-            elif len(inds) == 1 and inds[0] == 'embA_c.-16C>T':
-                return 'No mechanism identified'
-            else:
-                return f";".join(inds)
+            return self._emb_comp(res = inds)
     
     def _remove_who(self,res):
 
         not_reportable = ['PPE35','clpC1','Rv3236c', 'Rv1258c']
         to_remove = []
-        muts = set()
         for i in res:
             for r in not_reportable:
                 if r in i:
-                    to_remove.append('tr')
-                else:
-                    muts.add(i)
+                    to_remove.append('i')
         
-        if len(to_remove) == len(res):
+        if len(set(res).difference(to_remove))== 0:
             return 'No mechanism identified'
         else:    
-            return f";".join(list(muts))
+            return f";".join(list(set(res).difference(to_remove)))
 
     def _pyrazinamide(self,res):
         
@@ -285,13 +341,13 @@ class Inferrence(object):
         # pass
         species = "Mycobacterium tuberculosis"
         if 'La1' in res[seq_id]['main_lin'] and 'BCG' not in res[seq_id]['sublin']:
-            species = f"{species} tuberculosis var bovis"
+            species = f"{species} var bovis"
         elif 'La1' in res[seq_id]['main_lin'] and 'BCG' in res[seq_id]['sublin']:
-            species = f"{species} tuberculosis var bovis BCG"
+            species = f"{species} var bovis BCG"
         elif 'La3' in res[seq_id]['main_lin']:
-            species = f"{species} tuberculosis var orygis"
+            species = f"{species} var orygis"
         elif 'La2' in res[seq_id]['main_lin']:
-            species = f"{species} tuberculosis var caprae"
+            species = f"{species} var caprae"
         elif res[seq_id]['main_lin'] == '':
             species = "Not likely M. tuberculosis"
         
@@ -304,9 +360,14 @@ class Inferrence(object):
         else:
             return res[seq_id]['main_lin'].replace('lineage', 'Lineage ')
 
-    def _db_version(self, res,seq_id):
+    def _db_version(self, res):
 
-        return res[seq_id]['db_version']
+        return f"{res['db_version']['name']}_{res['db_version']['commit']}"
+    
+    def _get_qc_feature(self,seq_id, res, val):
+
+        return res[seq_id][val]
+
 
     def infer(self):
         
@@ -314,15 +375,22 @@ class Inferrence(object):
         results = []
         for isolate in self.isolates:
             logger.info(f"Working on {isolate}")
-            tbp_result = self._open_json(path = self.isolates[isolate]['collate'])
-            _dict = self._infer_drugs(tbp_result = tbp_result,seq_id=isolate)
-            _dict = self._infer_dr_profile(res = _dict)
-            _dict['Species'] = self._species(res = tbp_result, seq_id=isolate)
-            _dict['Phylogenetic lineage'] = self._lineage(res = tbp_result, seq_id=isolate)
-            _dict['Database version'] = self._db_version(res = tbp_result, seq_id= isolate)
-            self._save_data(_data = [_dict], prefix = f"{isolate}/tbtamr")
-            # self._save_csv(_)
-            results.append(_dict)
+            for_collate = self._check_output_file(seq_id=isolate, step = 'collate')
+            if for_collate:
+                tbp_result = self._open_json(path = self.isolates[isolate]['collate'])
+                raw_result = self._open_json(path = self.isolates[isolate]['profile'])
+                _dict = self._infer_drugs(tbp_result = tbp_result,seq_id=isolate)
+                _dict = self._infer_dr_profile(res = _dict)
+                _dict['Species'] = self._species(res = tbp_result, seq_id=isolate)
+                _dict['Phylogenetic lineage'] = self._lineage(res = tbp_result, seq_id=isolate)
+                _dict['Database version'] = self._db_version(res = raw_result)
+                _dict['Median genome coverage'] = self._get_qc_feature(seq_id = isolate, res =tbp_result, val = 'median_coverage')
+                _dict['Percentage reads mapped'] = self._get_qc_feature(seq_id = isolate,res = tbp_result, val = 'pct_reads_mapped')
+                self._save_data(_data = [_dict], prefix = f"{isolate}/tbtamr")
+                # self._save_csv(_)
+                results.append(_dict)
+            # else:
+            #     logger.info(f'Collated results already exist for {isolate}.')
             # break
         
         logger.info(f"Saving collated data.")

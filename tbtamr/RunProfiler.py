@@ -11,12 +11,14 @@ class RunProfiler(Tbtamr):
     """
     def __init__(self, args):
         
-        # super().__init__()
+        super().__init__()
         self.database = args.db
-        self.input_file = args.input_file
+        self.input_data = args.input_data
         self.jobs = args.jobs
         self.keep = args.keep
         self.keep_bam = args.keep_bam
+        # self.qc_min_cov = args.qc_min_cov
+        # self.qc_perc_mapped = args.qc_perc_mapped
         # self.logger = self._get_logger()
         # self.input_data = args
         
@@ -34,14 +36,19 @@ class RunProfiler(Tbtamr):
     def _get_isolates(self):
 
         isolates = {}
-        with open(self.input_file,'r') as i:
+        if isinstance(self.input_data, dict):
+            isolates[self.input_data['Seq_ID']]
+        else:
+            try:
+                with open(self.input_data,'r') as i:
 
-            lines = i.read().strip().split('\n')
-            for line in lines:
-                iso = line.split('\t')[0]
-                if iso not in isolates and iso != '':
-                    isolates[iso] = {}
-                
+                    lines = i.read().strip().split('\n')
+                    for line in lines:
+                        iso = line.split('\t')[0]
+                        if iso not in isolates and iso != '':
+                            isolates[iso] = {}
+            except Exception as err:
+                logger.critical(f"Something has gone wrong with your inputs. The following error was reported : {err}")
         return isolates
     
     def _remove(self, keep_bam = False, keep = False):
@@ -64,17 +71,25 @@ class RunProfiler(Tbtamr):
 
         self._run_cmd(cmd=cmd)
 
-    def _batch_cmd(self):
-        cmd = f"parallel --colsep '\\t' -j {self.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} --db {self.database} --prefix {{1}} --dir {{1}} --no_trim --call_whole_genome --threads 1 >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
+    def _single_cmd(self, input_data):
+        cmd = f"'tb-profiler profile --read1 {input_data['R1']} --read2 {input_data['R2']} {self.database} --prefix {input_data['Seq_ID']} --dir {input_data['Seq_ID']} --no_trim --call_whole_genome --threads {self.jobs} >> {{1}}/tbprofiler.log 2>&1' :::: {self.input_file}"
         return cmd
 
-    def _batch_collate(self):
-        cmd = f"parallel --colsep '\\t' -j {self.jobs} tb-profiler collate -d {{1}}/results/ --db {self.database} -p {{1}}/tb-profiler_report --full --all_variants --mark_missing :::: {self.input_file}"
+    def _batch_cmd(self, input_data):
+        cmd = f"parallel --colsep '\\t' -j {self.jobs} 'tb-profiler profile --read1 {{2}} --read2 {{3}} {self.database} --prefix {{1}} --dir {{1}} --no_trim --call_whole_genome --threads 1  >> {{1}}/tbprofiler.log 2>&1' :::: {input_data}"
+        return cmd
+
+    def _single_collate(self, input_data):
+        cmd = f"tb-profiler collate -d {{1}}/results/ {self.database} -p {input_data['Seq_ID']}/tb-profiler_report --full --all_variants --mark_missing"
+        return cmd
+
+    def _batch_collate(self, input_data):
+        cmd = f"parallel --colsep '\\t' -j {self.jobs} tb-profiler collate -d {{1}}/results/ {self.database} -p {{1}}/tb-profiler_report --full --all_variants --mark_missing :::: {input_data}"
         return cmd
 
     def _check_tbprofiler(self):
         version_pat_3 = re.compile(r'\bv?(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(?:\.(?P<release>[0-9]+)*)?(?:\.(?P<build>[0-9]+)*)?\b')
-        p = subprocess.run(f"tb-profiler --version", capture_output=True, encoding = "utf-8", shell = True)
+        p = subprocess.run(f"tb-profiler version", capture_output=True, encoding = "utf-8", shell = True)
         p = p.stdout
         v = version_pat_3.search(p.strip())
         if v:
@@ -96,7 +111,7 @@ class RunProfiler(Tbtamr):
             if isolates != {}:
                 logger.info(f"All check complete now running TB-profiler")
             else:
-                logger.warning(f"It seems that you have already run tbtamr on these sequences. Now exiting")
+                logger.info(f"It seems that you have already run tbtamr on these sequences. Now exiting")
                 raise SystemExit
         else:
             logger.critical(f"TB-profiler does not seem to be installed correctly. Please try again.")
@@ -104,12 +119,12 @@ class RunProfiler(Tbtamr):
         # get list isolates
         
         # self._check_tbprofiler()
-        cmd_profiler = self._batch_cmd()
+        cmd_profiler = self._single_cmd(input_data= self.input_data) if isinstance(self.input_data, dict) else self._batch_cmd(input_data= self.input_data)
         
         if self._run_cmd(cmd = cmd_profiler):
             isolates = self._check_output(isolates = isolates, step = 'profile')
             logger.info(f"Profiling was completed successfully, now collating results.")
-            cmd_collate = self._batch_collate()
+            cmd_collate = self._single_collate(input_data= self.input_data) if isinstance(self.input_data, dict) else self._batch_collate(input_data=self.input_data)
             if self._run_cmd(cmd = cmd_collate):
                 isolates = self._check_output(isolates = isolates, step = 'collate')
         # clean up
