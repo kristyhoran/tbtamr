@@ -126,7 +126,7 @@ class Inferrence(Tbtamr):
 
         
         logger.info(f"Checking {_path}.json already exists.")
-        _existing_data = self._open_json(path = f"{_path}.json")
+        _existing_data = self._open_json(path = f"{_path}.json",for_appending=True)
         if isinstance(_existing_data, dict):
             _to_save = _existing_data.update(_data)
         else:
@@ -158,6 +158,8 @@ class Inferrence(Tbtamr):
             "Delamanid",
             "Bedaquiline",
             "Linezolid",
+            "Median genome coverage",
+            "Percentage reads mapped",
             "Database version"
          ]
 

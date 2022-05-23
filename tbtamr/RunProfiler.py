@@ -80,7 +80,7 @@ class RunProfiler(Tbtamr):
         return cmd
 
     def _single_collate(self, input_data):
-        cmd = f"tb-profiler collate -d {{1}}/results/ {self.database} -p {input_data['Seq_ID']}/tb-profiler_report --full --all_variants --mark_missing"
+        cmd = f"tb-profiler collate -d {input_data['Seq_ID']}/results/ {self.database} -p {input_data['Seq_ID']}/tb-profiler_report --full --all_variants --mark_missing"
         return cmd
 
     def _batch_collate(self, input_data):
