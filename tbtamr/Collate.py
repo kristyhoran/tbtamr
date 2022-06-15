@@ -43,14 +43,16 @@ class Parse(Tbtamr):
             try:
                 with open(_input, 'r') as f:
                     isos = f.read().strip().split('\n')
-                if isinstance(isos, list) and len(isolates)>1:
-                    isolates = self._get_isolate_dict(isos = isos)
-                    return isolates
-                else:
-                    logger.critical(f"It seems that your input file is not configured properly. Isolates should be listed with a new isolate on each line. Please try again.")
-                    raise SystemExit
+                    print(isos)
+                    if isinstance(isos, list) and len(isos)>1:
+                        isolates = self._get_isolate_dict(isos = isos)
+                        return isolates
+                    else:
+                        logger.critical(f"It seems that your input file is not configured properly. Isolates should be listed with a new isolate on each line. Please try again.")
+                        raise SystemExit
             except Exception as err:
                 logger.critical(f"Was unable to open {_input} and extract isolates. The following error was reported {err}")
+                raise SystemExit
     
     def extract_inputs(self):
 
@@ -258,15 +260,15 @@ class Inferrence(Tbtamr):
     
     def _remove_who(self,res):
 
-        not_reportable = ['PPE35','clpC1','Rv3236c', 'Rv1258c']
+        not_reportable = ['PPE35','clpC1','Rv3236c', 'Rv1258c','panD']
         to_remove = []
         for i in res:
             for r in not_reportable:
                 if r in i:
-                    to_remove.append('i')
+                    to_remove.append(i)
         
         if len(set(res).difference(to_remove))== 0:
-            return 'No mechanism identified'
+            return 'No mechanism identified*'
         else:    
             return f";".join(list(set(res).difference(to_remove)))
 
