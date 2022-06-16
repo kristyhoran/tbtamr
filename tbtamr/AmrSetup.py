@@ -129,7 +129,7 @@ class AmrSetup(Tbtamr):
 
         if db_prefix == 'tbtamr':
            logger.info(f"You are using the default tbtamr database.")
-           pth = f"{pathlib.Path(__file__).parent.parent / 'db'}"
+           pth = f"{pathlib.Path(__file__).parent / 'db'}"
            return f"--external_db {pth} --db tbtamr"
         elif db_prefix == 'tbdb':
             logger.info(f"You are using the TB-profiler database.")

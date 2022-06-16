@@ -90,8 +90,10 @@ class RunProfiler(Tbtamr):
     def _check_tbprofiler(self):
         version_pat_3 = re.compile(r'\bv?(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(?:\.(?P<release>[0-9]+)*)?(?:\.(?P<build>[0-9]+)*)?\b')
         p = subprocess.run(f"tb-profiler version", capture_output=True, encoding = "utf-8", shell = True)
+        print(p)
         p = p.stdout
         v = version_pat_3.search(p.strip())
+        print(v)
         if v:
             v = v.group(0)
             logger.info(f"TB Profiler version {v} detected.")    
